@@ -1,6 +1,6 @@
 # Flexudy API Java Client Library
 
-[![Build Status](https://travis-ci.org/flexudy/flexudy-gateway-java.svg?branch=master)](https://travis-ci.org/flexudy/gateway-java-client-java)
+[![Build Status](https://travis-ci.com/flexudy/flexudy-client-java.svg?branch=master)](https://travis-ci.com/flexudy/flexudy-client-java)
 
 The official [Flexudy](https://flexudy.com) Java client library.
 
@@ -68,9 +68,11 @@ public class Driver {
                                                             .readTimeoutSeconds(30)
                                                             .writeTimeoutSeconds(20)
                                                             .build();
-        final FlexudyGatewayClient client = FlexudyGatewayClient.builder().licenseKey(licenseKey)
-                                                                          .httpClientConfig(httpConfig)
-                                                                          .environment(Environment.PRODUCTION).build();
+        final FlexudyGatewayClient client = FlexudyGatewayClient.builder()
+                                                                .licenseKey(licenseKey)
+                                                                .httpClientConfig(httpConfig)
+                                                                .environment(Environment.PRODUCTION)
+                                                                .build();
 
         
     }
@@ -112,7 +114,9 @@ public class Driver {
                                                                         .textContent(sampleText)
                                                                         .build();
         
-        final FlexudyGatewayClient client = FlexudyGatewayClient.builder().licenseKey(licenseKey).build();
+        final FlexudyGatewayClient client = FlexudyGatewayClient.builder()
+                                                                .licenseKey(licenseKey)
+                                                                .build();
         
         System.out.println("\n*********** Generating Cloze Questions for a URL source ***********\n");
         System.out.println(String.format("Cloze Quiz: %s", client.generateClozeQuiz(commonRequestData)));
