@@ -3,6 +3,7 @@ package com.flexudy.education.gateway_java_client.data.quiz;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Optional;
@@ -10,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Data
+@ToString
 public class ClozeQuestion {
 
     private static final String DEFAULT_BLANK_SYMBOL = "______";
