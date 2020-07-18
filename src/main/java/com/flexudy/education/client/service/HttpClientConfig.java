@@ -1,18 +1,18 @@
-package com.flexudy.education.gateway_java_client.service;
+package com.flexudy.education.client.service;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Data
 @Builder
+@Getter
 public class HttpClientConfig {
 
-    private static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(1);
-    private static final long DEFAULT_WRITE_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(3);
-    private static final long DEFAULT_READ_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(3);
+    public static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(1);
+    public static final long DEFAULT_WRITE_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(3);
+    public static final long DEFAULT_READ_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(3);
 
     private Long connectTimeoutSeconds;
     private Long writeTimeoutSeconds;

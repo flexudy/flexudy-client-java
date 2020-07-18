@@ -1,3 +1,11 @@
 language: java
 jdk:
-  - oraclejdk9
+  - openjdk9
+  - openjdk11
+  - openjdk10
+  - openjdk-ea
+matrix:
+  allow_failures:
+    - jdk: openjdk-ea
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

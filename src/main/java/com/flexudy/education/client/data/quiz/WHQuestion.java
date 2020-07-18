@@ -1,9 +1,9 @@
-package com.flexudy.education.gateway_java_client.data.quiz;
+package com.flexudy.education.client.data.quiz;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.ToString;
 
-@Data
+@Getter
 @ToString
 public class WHQuestion {
     private String question;

@@ -1,16 +1,17 @@
-package com.flexudy.education.gateway_java_client.data.quiz;
+package com.flexudy.education.client.data.quiz;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
+import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 @ToString
 public class ClozeQuestion {
 
@@ -24,11 +25,15 @@ public class ClozeQuestion {
     private static final String BEGIN_TAG_REPLACER = " :B-TAG#";
     private static final String END_TAG_REPLACER = " ";
 
-    @Getter(value = AccessLevel.PRIVATE)
+    @VisibleForTesting
+    @Getter(value = AccessLevel.PACKAGE)
+    @JsonProperty
     private String questionAnswer;
 
     public String getQuestion(String blankSymbol) {
-        String displayQuestion = QUESTION_URN_PATTERN.matcher(questionAnswer).replaceAll(Optional.ofNullable(blankSymbol).orElse(DEFAULT_BLANK_SYMBOL));
+        String displayQuestion = QUESTION_URN_PATTERN.matcher(questionAnswer)
+                                                     .replaceAll(Optional.ofNullable(blankSymbol)
+                                                     .orElse(DEFAULT_BLANK_SYMBOL));
         return getNormalizedText(displayQuestion);
     }
 
@@ -52,7 +57,7 @@ public class ClozeQuestion {
 
     private String getNormalizedText(String text) {
         text = WRAP_TEXT_PATTERN.matcher(text).replaceAll(StringUtils.EMPTY);
-        return StringUtils.normalizeSpace(NEXT_LINE_PATTERN.matcher(text).replaceAll(" "));
+        return StringUtils.normalizeSpace(NEXT_LINE_PATTERN.matcher(text).replaceAll(StringUtils.SPACE));
     }
 
 }

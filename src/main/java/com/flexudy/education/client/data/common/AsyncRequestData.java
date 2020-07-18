@@ -1,4 +1,4 @@
-package com.flexudy.education.gateway_java_client.data.common;
+package com.flexudy.education.client.data.common;
 
 import java.util.Optional;
 

@@ -1,26 +1,27 @@
-package com.flexudy.education.gateway_java_client.data.common;
+package com.flexudy.education.client.data.common;
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
 public interface CommonRequestData {
 
     ContentType DEFAULT_CONTENT_TYPE = ContentType.DOCUMENT;
 
-    Optional<InputStream> getContentInputStream();
-    Optional<String> getContentUrl();
+    List<InputStream> getFiles();
+    List<String> getContentUrls();
     Optional<String> getTextContent();
     ContentType getContentType();
 
-    @Data
+    @Getter
     @SuperBuilder
     class SimpleCommonRequestData implements CommonRequestData {
 
-        private InputStream inputStream;
-        private String contentUrl;
+        private List<InputStream> files;
+        private List<String> contentUrls;
         private String textContent;
         private ContentType contentType;
 
@@ -30,13 +31,13 @@ public interface CommonRequestData {
         }
 
         @Override
-        public Optional<InputStream> getContentInputStream() {
-            return Optional.ofNullable(inputStream);
+        public List<InputStream> getFiles() {
+            return files;
         }
 
         @Override
-        public Optional<String> getContentUrl() {
-            return Optional.ofNullable(contentUrl);
+        public List<String> getContentUrls() {
+            return contentUrls;
         }
 
         @Override
@@ -45,7 +46,7 @@ public interface CommonRequestData {
         }
     }
 
-    @Data
+    @Getter
     @SuperBuilder
     class SimpleAsyncRequestData extends SimpleCommonRequestData implements AsyncRequestData {
 
@@ -60,6 +61,14 @@ public interface CommonRequestData {
         @Override
         public int getJobPollingWaitInterval() {
             return Optional.ofNullable(jobPollingWaitInterval).orElse(DEFAULT_JOB_POLL_SECONDS_WAIT);
+        }
+
+        public static SimpleAsyncRequestData fromCommonRequestData(@NonNull CommonRequestData commonRequestData) {
+            return SimpleAsyncRequestData.builder().files(commonRequestData.getFiles())
+                                                   .contentUrls(commonRequestData.getContentUrls())
+                                                   .contentType(commonRequestData.getContentType())
+                                                   .textContent(commonRequestData.getTextContent().orElse(null))
+                                                   .build();
         }
     }
 }
