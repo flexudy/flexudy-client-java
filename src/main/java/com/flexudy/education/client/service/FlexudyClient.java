@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flexudy.education.client.data.common.AsyncRequestData;
 import com.flexudy.education.client.data.common.CommonRequestData;
+import com.flexudy.education.client.data.quiz.OpenQuestion;
 import com.flexudy.education.client.data.quiz.WHQuestion;
 import com.flexudy.education.client.service.network.Environment;
 import com.flexudy.education.client.service.network.HostResolver;
@@ -43,14 +44,17 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
 
     private static final String CLOZE_QUIZ_API_PATH = "/api/v1/cloze-quiz/generate";
     private static final String WH_QUIZ_API_PATH = "/api/v1/wh-quiz/generate";
+    private static final String OPEN_QUIZ_API_PATH = "/api/v1/open-quiz/generate";
     private static final String SUMMARY_API_PATH = "/api/v1/summary/generate";
 
     private static final String CLOZE_QUIZ_JOB_API_PATH = "/api/v1/cloze-quiz/queue";
     private static final String WH_QUIZ_JOB_API_PATH = "/api/v1/wh-quiz/queue";
+    private static final String OPEN_QUIZ_JOB_API_PATH = "/api/v1/open-quiz/queue";
     private static final String SUMMARY_JOB_API_PATH = "/api/v1/summary/queue";
 
     private static final String CLOZE_QUIZ_JOB_RESULTS_API_PATH = CLOZE_QUIZ_JOB_API_PATH + "/results";
     private static final String WH_QUIZ_JOB_RESULTS_API_PATH = WH_QUIZ_JOB_API_PATH + "/results";
+    private static final String OPEN_QUIZ_JOB_RESULTS_API_PATH = OPEN_QUIZ_JOB_API_PATH + "/results";
     private static final String SUMMARY_JOB_RESULTS_API_PATH = SUMMARY_JOB_API_PATH + "/results";
 
     @VisibleForTesting
@@ -96,7 +100,8 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
         log.debug("Preparing to generate Cloze questions");
         final Request request = new Request.Builder().url(resolveApiUrl(CLOZE_QUIZ_API_PATH).toString())
                                                      .header(LICENSE_KEY_HEADER_PARAM, licenseKey)
-                                                     .post(resolveCommonDataRequestBodyBuilder(quizRequest).build()).build();
+                                                     .post(resolveCommonDataRequestBodyBuilder(quizRequest).build())
+                                                     .build();
         return generateContent(request, jsonToClozeQuestionsParser);
     }
 
@@ -106,8 +111,20 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
         log.debug("Preparing to generate WH questions");
         final Request request = new Request.Builder().url(resolveApiUrl(WH_QUIZ_API_PATH).toString())
                                                      .header(LICENSE_KEY_HEADER_PARAM, licenseKey)
-                                                    .post(resolveCommonDataRequestBodyBuilder(quizRequest).build()).build();
+                                                     .post(resolveCommonDataRequestBodyBuilder(quizRequest).build())
+                                                     .build();
         return generateContent(request, jsonToWHQuestionsParser);
+    }
+
+    @Override
+    public List<OpenQuestion> generateOpenQuiz(CommonRequestData quizRequest) {
+        validateCommonParameters(quizRequest);
+        log.debug("Preparing to generate Open questions");
+        final Request request = new Request.Builder().url(resolveApiUrl(OPEN_QUIZ_API_PATH).toString())
+                                                     .header(LICENSE_KEY_HEADER_PARAM, licenseKey)
+                                                     .post(resolveCommonDataRequestBodyBuilder(quizRequest).build())
+                                                     .build();
+        return generateContent(request, jsonToOpenQuestionsParser);
     }
 
     @Override
@@ -134,6 +151,14 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
         return (Future<List<WHQuestion>>) pollJobResult(quizRequest.getJobPollingWaitInterval(),
                                                         submittedJob.getJobId(),
                                                         id -> pollWHQuizResults(id));
+    }
+
+    @Override
+    public Future<List<OpenQuestion>> submitOpenQuizJob(@NonNull AsyncRequestData quizRequest) {
+        final JobId submittedJob = submitQuestionJobRequest(quizRequest, OPEN_QUIZ_JOB_API_PATH);
+        return (Future<List<OpenQuestion>>) pollJobResult(quizRequest.getJobPollingWaitInterval(),
+                                                          submittedJob.getJobId(),
+                                                          id -> pollOpenQuizResults(id));
     }
 
     @Override
@@ -165,7 +190,8 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
         log.debug("Preparing to submit question generation request");
         return generateContent(new Request.Builder().header(LICENSE_KEY_HEADER_PARAM, licenseKey)
                                                     .url(resolveApiUrl(apiPath).toString())
-                                                    .post(resolveAsyncDataRequestBodyBuilder(quizRequest).build()).build(),
+                                                    .post(resolveAsyncDataRequestBodyBuilder(quizRequest).build())
+                                                    .build(),
                                jsonToJobIdFunction);
     }
 
@@ -174,7 +200,8 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
         log.debug("Preparing to submit summary generation request");
         return generateContent(new Request.Builder().header(LICENSE_KEY_HEADER_PARAM, licenseKey)
                                                     .url(resolveApiUrl(SUMMARY_JOB_API_PATH).toString())
-                                                    .post(resolveAsyncDataRequestBodyBuilder(summaryRequest).build()).build(),
+                                                    .post(resolveAsyncDataRequestBodyBuilder(summaryRequest).build())
+                                                    .build(),
                                jsonToJobIdFunction);
     }
 
@@ -182,8 +209,12 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
         return (Optional<List<ClozeQuestion>>) retrieveJobResult(CLOZE_QUIZ_JOB_RESULTS_API_PATH, jobId, jsonToClozeQuestionsParser);
     }
 
-    private Optional<List<ClozeQuestion>> pollWHQuizResults(String jobId) {
-        return (Optional<List<ClozeQuestion>>) retrieveJobResult(WH_QUIZ_JOB_RESULTS_API_PATH, jobId, jsonToWHQuestionsParser);
+    private Optional<List<WHQuestion>> pollWHQuizResults(String jobId) {
+        return (Optional<List<WHQuestion>>) retrieveJobResult(WH_QUIZ_JOB_RESULTS_API_PATH, jobId, jsonToWHQuestionsParser);
+    }
+
+    private Optional<List<OpenQuestion>> pollOpenQuizResults(String jobId) {
+        return (Optional<List<OpenQuestion>>) retrieveJobResult(OPEN_QUIZ_JOB_RESULTS_API_PATH, jobId, jsonToOpenQuestionsParser);
     }
 
     private Optional<Summary> pollSummaryResults(String jobId) {
@@ -199,6 +230,14 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
     };
 
     private Function<String, List<WHQuestion>> jsonToWHQuestionsParser = (rawJson) -> {
+        try {
+            return getObjectMapper().readValue(rawJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+    };
+
+    private Function<String, List<OpenQuestion>> jsonToOpenQuestionsParser = (rawJson) -> {
         try {
             return getObjectMapper().readValue(rawJson, new TypeReference<>() {});
         } catch (JsonProcessingException e) {
@@ -245,7 +284,7 @@ public class FlexudyClient implements SynchronousClient, AsynchronousClient {
     private <T> T generateContent(Request request, Function<String, T> mapperFunction) {
         try (Response response = newHttpClient().newCall(request).execute()) {
             if (response.isSuccessful()) {
-                log.debug("Successfully generate content for request {}", request);
+                log.debug("Successfully generated content for request {}", request);
                 return mapperFunction.apply(response.body().string());
             }
             log.debug("Failed to generate content due to {} status code", response.code());

@@ -17,4 +17,9 @@ public class HostResolverTest {
         assertThat(HostResolver.resolve(Environment.PRODUCTION)).isEqualTo(HostResolver.PRODUCTION_URL);
     }
 
+    @Test
+    public void testResolveForSandboxEnvironment() {
+        assertThat(HostResolver.resolve(Environment.SANDBOX)).isEqualTo(HostResolver.SANDBOX_URL);
+    }
+
 }
