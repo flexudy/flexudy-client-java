@@ -7,6 +7,7 @@ import com.flexudy.education.client.data.common.CommonRequestData.SimpleAsyncReq
 import com.flexudy.education.client.data.common.CommonRequestData.SimpleCommonRequestData;
 import com.flexudy.education.client.data.common.ContentType;
 import com.flexudy.education.client.data.quiz.ClozeQuestion;
+import com.flexudy.education.client.data.quiz.OpenQuestion;
 import com.flexudy.education.client.data.quiz.WHQuestion;
 import com.flexudy.education.client.data.summary.Summary;
 import okhttp3.*;
@@ -49,13 +50,21 @@ public class FlexudyClientTest {
     private static final String CLOZE_QUESTION_ANSWER = "Paris";
 
     private static final String WH_QUESTION_TEXT = "What is the capital of the UAE?";
+    private static final String OPEN_QUESTION_TEXT = "Describe the characteristics of a centric?";
+
+    private static final String OPEN_QUESTION_ANSWER = "A centric is someone who is netiher left or right";
     private static final String WH_QUESTION_ANSWER = "Abu Dhabi";
     private static final String SUMMARY_FACT = "This is a summary";
 
     private static final String ClOZE_QUESTION_JSON_ARRAY = new JSONArray().put(new JSONObject().put("questionAnswer",
                                                                                        RAW_CLOZE_QUESTION)).toString();
+
     private static final String WH_QUESTION_JSON_ARRAY = new JSONArray().put(new JSONObject().put("question", WH_QUESTION_TEXT)
                                                                            .put("answer", WH_QUESTION_ANSWER)).toString();
+
+    private static final String OPEN_QUESTION_JSON_ARRAY = new JSONArray().put(new JSONObject().put("question", OPEN_QUESTION_TEXT)
+                                                                          .put("passage", OPEN_QUESTION_ANSWER)).toString();
+
     private static final String SUMMARY_FACTS_JSON = new JSONObject().put("summary", List.of(SUMMARY_FACT)).toString();
     private static final String JOB_ID_JSON = new JSONObject().put("jobId", 1).toString();
 
@@ -144,6 +153,11 @@ public class FlexudyClientTest {
     }
 
     @Test
+    public void testGenerateOpenQuizWithNullRequestData() {
+        assertThrows(NullPointerException.class, () -> client.generateOpenQuiz(null));
+    }
+
+    @Test
     public void testGenerateSummaryWithNullRequestData() {
         assertThrows(NullPointerException.class, () -> client.generateSummary(null));
     }
@@ -159,6 +173,11 @@ public class FlexudyClientTest {
     }
 
     @Test
+    public void testSubmitOpenQuizRequestWithNullRequestData() {
+        assertThrows(NullPointerException.class, () -> client.submitOpenQuizJob(null));
+    }
+
+    @Test
     public void testSubmitSummaryWithNullRequestData() {
         assertThrows(NullPointerException.class, () -> client.submitSummaryJob(null));
     }
@@ -167,6 +186,20 @@ public class FlexudyClientTest {
     public void testGenerateClozeQuizWithNoDataSet() {
         final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> client.generateClozeQuiz(SimpleCommonRequestData.builder().build()));
+        assertThat(exception.getMessage()).isEqualTo("Please set either the url, text content or content input stream");
+    }
+
+    @Test
+    public void testGenerateOpenQuizWithNoDataSet() {
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> client.generateOpenQuiz(SimpleCommonRequestData.builder().build()));
+        assertThat(exception.getMessage()).isEqualTo("Please set either the url, text content or content input stream");
+    }
+
+    @Test
+    public void testGenerateWHQuizWithNoDataSet() {
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> client.generateWHQuiz(SimpleCommonRequestData.builder().build()));
         assertThat(exception.getMessage()).isEqualTo("Please set either the url, text content or content input stream");
     }
 
@@ -220,6 +253,12 @@ public class FlexudyClientTest {
     public void testGenerateWHQuizWithInvalidResponse() throws IOException {
         stubResponse(StringUtils.EMPTY);
         assertThrows(IllegalArgumentException.class, () -> client.generateWHQuiz(FILE_REQUEST_DATA));
+    }
+
+    @Test
+    public void testGenerateOpenQuizWithInvalidResponse() throws IOException {
+        stubResponse(StringUtils.EMPTY);
+        assertThrows(IllegalArgumentException.class, () -> client.generateOpenQuiz(FILE_REQUEST_DATA));
     }
 
     @Test
@@ -359,13 +398,13 @@ public class FlexudyClientTest {
         assertThat(actualQuestion.getAnswer()).isEqualTo(WH_QUESTION_ANSWER);
 
         verify(okHttpClient, times(2)).newCall(requestArgumentCaptor.capture());
-        final List<Request> WHQuizPushPullRequests = requestArgumentCaptor.getAllValues();
+        final List<Request> whQuizPushPullRequests = requestArgumentCaptor.getAllValues();
 
-        final Request submitJobRequest = WHQuizPushPullRequests.get(0);
+        final Request submitJobRequest = whQuizPushPullRequests.get(0);
         assertThat(submitJobRequest.url().toString()).isEqualTo("https://gateway.flexudy.com/api/v1/wh-quiz/queue");
         assertThat(submitJobRequest.header(FlexudyClient.LICENSE_KEY_HEADER_PARAM)).isEqualTo(LICENSE_KEY);
 
-        final Request pollJobResultRequest = WHQuizPushPullRequests.get(1);
+        final Request pollJobResultRequest = whQuizPushPullRequests.get(1);
         assertThat(pollJobResultRequest.url().toString()).isEqualTo("https://gateway.flexudy.com/api/v1/wh-quiz/queue/results?jobId=1");
         assertThat(pollJobResultRequest.header(FlexudyClient.LICENSE_KEY_HEADER_PARAM)).isEqualTo(LICENSE_KEY);
     }
@@ -386,6 +425,48 @@ public class FlexudyClientTest {
         final Request whQuizPostRequest = requestArgumentCaptor.getValue();
         assertThat(whQuizPostRequest.url().toString()).isEqualTo("https://gateway.flexudy.com/api/v1/wh-quiz/generate");
         assertThat(whQuizPostRequest.header(FlexudyClient.LICENSE_KEY_HEADER_PARAM)).isEqualTo(LICENSE_KEY);
+    }
+
+    @Test
+    public void testSubmitOpenQuiz() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        stubResponse(JOB_ID_JSON, OPEN_QUESTION_JSON_ARRAY);
+        final ArgumentCaptor<Request> requestArgumentCaptor = ArgumentCaptor.forClass(Request.class);
+
+        final List<OpenQuestion> questions = client.submitOpenQuizJob(fromCommonRequestData(FILE_REQUEST_DATA)).get(1, MINUTES);
+        assertThat(questions).hasSize(1);
+
+        final OpenQuestion actualQuestion = questions.get(0);
+        assertThat(actualQuestion.getQuestion()).isEqualTo(OPEN_QUESTION_TEXT);
+        assertThat(actualQuestion.getPassage()).isEqualTo(OPEN_QUESTION_ANSWER);
+
+        verify(okHttpClient, times(2)).newCall(requestArgumentCaptor.capture());
+        final List<Request> openQuizPushPullRequests = requestArgumentCaptor.getAllValues();
+
+        final Request submitJobRequest = openQuizPushPullRequests.get(0);
+        assertThat(submitJobRequest.url().toString()).isEqualTo("https://gateway.flexudy.com/api/v1/open-quiz/queue");
+        assertThat(submitJobRequest.header(FlexudyClient.LICENSE_KEY_HEADER_PARAM)).isEqualTo(LICENSE_KEY);
+
+        final Request pollJobResultRequest = openQuizPushPullRequests.get(1);
+        assertThat(pollJobResultRequest.url().toString()).isEqualTo("https://gateway.flexudy.com/api/v1/open-quiz/queue/results?jobId=1");
+        assertThat(pollJobResultRequest.header(FlexudyClient.LICENSE_KEY_HEADER_PARAM)).isEqualTo(LICENSE_KEY);
+    }
+
+    @Test
+    public void testGenerateOpenQuiz() throws IOException {
+        stubResponse(OPEN_QUESTION_JSON_ARRAY);
+        final ArgumentCaptor<Request> requestArgumentCaptor = ArgumentCaptor.forClass(Request.class);
+
+        final List<OpenQuestion> questions = client.generateOpenQuiz(URL_REQUEST_DATA);
+        assertThat(questions).hasSize(1);
+
+        final OpenQuestion actualQuestion = questions.get(0);
+        assertThat(actualQuestion.getQuestion()).isEqualTo(OPEN_QUESTION_TEXT);
+        assertThat(actualQuestion.getPassage()).isEqualTo(OPEN_QUESTION_ANSWER);
+
+        verify(okHttpClient).newCall(requestArgumentCaptor.capture());
+        final Request openQuizPostRequest = requestArgumentCaptor.getValue();
+        assertThat(openQuizPostRequest.url().toString()).isEqualTo("https://gateway.flexudy.com/api/v1/open-quiz/generate");
+        assertThat(openQuizPostRequest.header(FlexudyClient.LICENSE_KEY_HEADER_PARAM)).isEqualTo(LICENSE_KEY);
     }
 
     @Test

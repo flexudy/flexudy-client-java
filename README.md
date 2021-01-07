@@ -40,14 +40,14 @@ You'll need to manually install the following JARs:
 
 ## Documentation
 
-Please see the [REST API Docs](https://developers.flexudy.com) for the most
+Please see the [REST API Docs - Production](https://developers.flexudy.com) or [REST API Docs - Sandbox](https://developers-sandbox.flexudy.com) for the most
 up-to-date documentation.
 
 ## Usage
 The main interface to the API is via the `FlexudyClient` Facade Object as shown below.
 
 ### Configuring Environment
-By default the Gateway connects to the `PRODUCTION` server at https://gateway.flexudy.com. In order, to
+By default the Gateway connects to the `PRODUCTION` server at [Gateway API Server - Production](https://gateway.flexudy.com) In order, to
 switch to another environment set it during the `FlexudyClient` object construction.
 
 ### Configuring Timeouts
@@ -93,7 +93,7 @@ import com.flexudy.education.client.data.common.CommonRequestData;
 import com.flexudy.education.client.data.common.CommonRequestData.SimpleAsyncRequestData;
 import com.flexudy.education.client.data.common.CommonRequestData.SimpleCommonRequestData;
 import com.flexudy.education.client.data.quiz.ClozeQuestion;
-import com.flexudy.education.client.data.quiz.WHQuestion;
+import com.flexudy.education.client.data.quiz.OpenQuestion;import com.flexudy.education.client.data.quiz.WHQuestion;
 import com.flexudy.education.client.data.summary.Summary;
 import com.flexudy.education.client.service.FlexudyClient;
 
@@ -128,6 +128,9 @@ public class Driver {
         
         System.out.println("\n*********** Generating WH Questions for a File source ***********\n");
         System.out.println(String.format("WH Quiz: %s", client.generateWHQuiz(fileData)));
+
+        System.out.println("\n*********** Generating Open Questions for a URL source ***********\n");
+        System.out.println(String.format("Open Quiz: %s", client.generateOpenQuiz(urlData)));
         
         System.out.println("\n*********** Generating Summary for a URL source ***********\n");
         System.out.println(client.generateSummary(urlData).getFacts());
@@ -139,6 +142,10 @@ public class Driver {
         System.out.println("\n*********** Generating WH Questions for an Asynchronous File Content ***********\n");
         final Future<List<WHQuestion>> futureWHQuestions = client.submitWHQuizJob(fromCommonRequestData(urlData));
         System.out.println(String.format("Async WH Quiz: %s", futureWHQuestions.get(5, MINUTES)));
+
+        System.out.println("\n*********** Generating Open Questions for an Asynchronous File Content ***********\n");
+        final Future<List<OpenQuestion>> futureOpenQuestions = client.submitOpenQuizJob(fromCommonRequestData(urlData));
+        System.out.println(String.format("Async Open Quiz: %s", futureOpenQuestions.get(5, MINUTES)));
         
         System.out.println("\n*********** Generating Summary for an Asynchronous Text source  ***********\n");
         final Future<Summary> futureSummary = client.submitSummaryJob(fromCommonRequestData(textData));
