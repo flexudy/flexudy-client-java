@@ -36,7 +36,7 @@ Add this dependency to your project's POM:
 
 You'll need to manually install the following JARs:
 
-- The Flexudy Client JAR from <https://github.com/flexudy/flexudy-client-java/releases/latest>
+- The Flexudy Client JAR from [Official Releases Page](https://github.com/flexudy/flexudy-client-java/releases/latest)
 
 ## Documentation
 
