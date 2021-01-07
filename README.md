@@ -93,7 +93,8 @@ import com.flexudy.education.client.data.common.CommonRequestData;
 import com.flexudy.education.client.data.common.CommonRequestData.SimpleAsyncRequestData;
 import com.flexudy.education.client.data.common.CommonRequestData.SimpleCommonRequestData;
 import com.flexudy.education.client.data.quiz.ClozeQuestion;
-import com.flexudy.education.client.data.quiz.OpenQuestion;import com.flexudy.education.client.data.quiz.WHQuestion;
+import com.flexudy.education.client.data.quiz.OpenQuestion;
+import com.flexudy.education.client.data.quiz.WHQuestion;
 import com.flexudy.education.client.data.summary.Summary;
 import com.flexudy.education.client.service.FlexudyClient;
 
